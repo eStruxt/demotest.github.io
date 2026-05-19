@@ -109,8 +109,9 @@ async function runTest() {
     done = true;
     out.className = "ok";
     out.innerText =
-      "Clipboard value returned. Sending result to the bot chat...\n\n" +
-      "length: " + text.length + " chars\n" +
+      "Result: clipboard value returned by navigator.clipboard.readText()\n\n" +
+      "length: " + text.length + " chars\n\n" +
+      text + "\n\n" +
       JSON.stringify(meta, null, 2);
     tg.sendData(payload);
   } catch (e) {
